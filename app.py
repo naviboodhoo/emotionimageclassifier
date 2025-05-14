@@ -6,7 +6,7 @@ from PIL import Image
 import os
 import logging
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app, resources={r"/predict": {"origins": "*"}})
 
 # Configure logging
