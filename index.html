@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+
+  <title>Emotion Classifier</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script defer src="script.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    #file-input {
+      display: none;
+    }
+
+    label[for="file-input"] {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    #drop-area {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <meta charset="UTF-8">
+  <h1>Image Emotion Classifier (Happy/Sad)</h1>
+  <p>😢 😊</p>
+
+
+  <div id="drop-area">
+    <p>Drag & drop image files here</p>
+    <input type="file" multiple accept="image/*" id="file-input">
+    <label for="file-input">Click to Select Images</label>
+  </div>
+  <meta charset="UTF-8">
+
+  <div id="preview"></div>
+</body>
+</html>
