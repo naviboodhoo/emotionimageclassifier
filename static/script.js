@@ -2,7 +2,7 @@ const dropArea = document.getElementById('drop-area');
 const fileInput = document.getElementById('file-input');
 const previewDiv = document.getElementById('preview');
 
-// Drag & drop events
+// Drag & drop styling
 ['dragenter', 'dragover'].forEach(eventName => {
   dropArea.addEventListener(eventName, (e) => {
     e.preventDefault();
@@ -17,16 +17,19 @@ const previewDiv = document.getElementById('preview');
   });
 });
 
+// Handle drop
 dropArea.addEventListener('drop', (e) => {
   const files = Array.from(e.dataTransfer.files);
   handleFiles(files);
 });
 
+// Handle manual selection
 fileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files);
   handleFiles(files);
 });
 
+// Core image handling logic
 async function handleFiles(files) {
   previewDiv.innerHTML = '';
 
@@ -35,32 +38,42 @@ async function handleFiles(files) {
     img.src = URL.createObjectURL(file);
     await new Promise(resolve => img.onload = resolve);
 
-    // Resize to 256x256 using canvas
+    // Resize image to 256x256 using canvas
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, 256, 256);
 
-    // Send file to backend using FormData
+    // Prepare form data
     const formData = new FormData();
     formData.append('file', file);
 
-   // const response = await fetch('http://localhost:5000/predict', {
-   //   method: 'POST',
-   //   body: formData
-   // });
-    const response = await fetch('/predict', {
-      method: 'POST',
-      body: formData
-    });
+    let score, label, emoji;
 
-    const result = await response.json();
-    const score = result.score;
-    const label = score > 0.5 ? 'Sad' : 'Happy';
-    const emoji = score > 0.5 ? ':(' : ':)';
+    try {
+      const response = await fetch('/predict', {
+        method: 'POST',
+        body: formData
+      });
 
-    // UI
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+
+      const result = await response.json();
+      score = result.score;
+      label = score > 0.5 ? 'Sad' : 'Happy';
+      emoji = score > 0.5 ? ':(' : ':)';
+      console.log(`Prediction: ${label} (${score})`);
+
+    } catch (err) {
+      console.error('Prediction failed:', err);
+      alert('Prediction failed. Please try again with a different image.');
+      return; // Skip rendering if prediction fails
+    }
+
+    // UI: Show result
     const container = document.createElement('div');
     container.className = 'result';
 
@@ -94,7 +107,7 @@ async function handleFiles(files) {
     emojiEl.textContent = emoji;
 
     info.appendChild(labelEl);
-    info.appendChild(scoreLabel);  // Confidence Score label added here
+    info.appendChild(scoreLabel);
     info.appendChild(barContainer);
 
     container.appendChild(resultImage);
