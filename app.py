@@ -35,6 +35,9 @@ def preprocess_image(file):
         logging.error(f"Error preprocessing image: {e}")
         raise  # Re-raise the exception to be caught in predict()
 
+
+
+
 # Prediction route
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -60,6 +63,10 @@ def predict():
     except Exception as e:
         logging.error(f"Error during prediction: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "Model API is running"}), 200
     
 if __name__ == "__main__":
     #app.run(debug=True) #remove this line
