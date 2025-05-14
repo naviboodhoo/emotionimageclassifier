@@ -1,27 +1,27 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
 import os
-import logging  # Import the logging module
+import logging
 
-app = Flask(__name__)
-CORS(app, resources={r"/predict": {"origins": "*"}})  # Allow all origins
+app = Flask(__name__, static_folder='static')
+CORS(app, resources={r"/predict": {"origins": "*"}})
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)  # Set the logging level
+logging.basicConfig(level=logging.INFO)
 
 # Load the model
 try:
-    model_path = 'happy_sad_model.h5'
+    model_path = os.path.join('models', 'happy_sad_model.h5')  # Adjust if model is in root
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model file not found at: {model_path}")
     model = load_model(model_path)
-    logging.info("Model loaded successfully")  # Log successful model load
+    logging.info("Model loaded successfully")
 except Exception as e:
-    logging.error(f"Failed to load model: {e}")  # Log the error
-    model = None  # Important: Set model to None if loading fails
+    logging.error(f"Failed to load model: {e}")
+    model = None
 
 # Preprocess image
 def preprocess_image(file):
@@ -29,14 +29,11 @@ def preprocess_image(file):
         img = Image.open(file).convert("RGB")
         img = img.resize((256, 256))
         img_array = np.array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)  # Shape: (1, 256, 256, 3)
+        img_array = np.expand_dims(img_array, axis=0)  # (1, 256, 256, 3)
         return img_array
     except Exception as e:
         logging.error(f"Error preprocessing image: {e}")
-        raise  # Re-raise the exception to be caught in predict()
-
-
-
+        raise
 
 # Prediction route
 @app.route("/predict", methods=["POST"])
@@ -56,7 +53,7 @@ def predict():
 
         img_array = preprocess_image(file)
         predictions = model.predict(img_array)
-        score = float(predictions[0][0])  # Ensure it's JSON serializable
+        score = float(predictions[0][0])
         logging.info(f"Prediction score: {score}")
         return jsonify({"score": score})
 
@@ -64,10 +61,16 @@ def predict():
         logging.error(f"Error during prediction: {e}")
         return jsonify({"error": str(e)}), 500
 
+# Serve the frontend (index.html)
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify({"message": "Model API is running"}), 200
-    
+    return send_from_directory(app.static_folder, "index.html")
+
+# Optional: Health check route (useful for Render or uptime monitoring)
+@app.route("/healthz", methods=["GET"])
+def health_check():
+    return "OK", 200
+
+# Start the server
 if __name__ == "__main__":
-    #app.run(debug=True) #remove this line
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
